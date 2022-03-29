@@ -262,31 +262,37 @@ const SmartDOM = {
   },
 
   findSmartChilds: function(node) {
-    let res = [];
+    let res = {};
     for (elem of node.children) {
+      const name = elem.dataset.name;
+      const id = elem.dataset.smartid;
       if (elem.localName == "smartvar") {
-        res.push({name: elem.dataset.name, value: elem.innerText, node: elem, type: "var"});
+        res[name] = {name: elem.dataset.name, value: elem.innerText, node: elem, type: "var"};
       }
       else if (elem.localName == "smartobjfield") {
-        res.push({name: elem.dataset.name, value: elem.innerText, node: elem, type: "field"});
+        res[name] = {name: elem.dataset.name, value: elem.innerText, node: elem, type: "field"};
       }
       else if (elem.localName == "smartobj") {
-        res.push({name: elem.dataset.name, node: elem, value: this.findSmartChilds(elem), type: "obj"});
+        res[name] = {name: elem.dataset.name, node: elem, value: this.findSmartChilds(elem), type: "obj"};
       }
       if (elem.children.length > 0)
-        res = res.concat(this.findSmartChilds(elem));
+        res = {...res, ...this.findSmartChilds(elem)}//res.concat(this.findSmartChilds(elem));
     }
     return res;
   },
 
   hasParent: function(objs = [], obj, type) {
+    console.log("objs :", objs);
+    console.log("obj :", obj);
+    const objName = obj.dataset.name;
     for (pobj of objs) {
-      for (child of pobj.value) {
-        if (child.name == obj.dataset.name && child.type == type)
+      //for (child of Object.keys(pobj.value)) {
+        if (pobj.value[objName] && pobj.value[objName].type == type)
           return true;
-        if (child.type == type)
-          return this.hasParent(child.value, obj);
-      }
+        if (pobj.value[objName].type == type)
+          return this.hasParent(pobj.value[objName].value, obj);
+      //}
+      console.log(pobj);
     }
     return false;
   },
