@@ -75,12 +75,16 @@ class SmartObj {
     const keys = Object.keys(obj);
     const values = Object.values(obj);
 
-    for (let i = 0; i < values.length; i++) {
+    for (let i = 0; i < values.length; i++) {/*
+      console.log("key: ", keys[i]);
+      console.log("value :", this.value);
+      console.log("parentName: ", parentName);*/
       if (SmartDOM.isObject(values[i])) {
         this.replaceValues(values[i], keys[i])
       }
       else {
         let smartElem = this.findNode(keys[i], this.value, parentName);
+        //console.log("smartElem :", smartElem);
         if (smartElem) {
           smartElem.node.innerText = values[i];
           smartElem.changed = true;
