@@ -3,12 +3,12 @@ const randomIdGenerator = () => {
 }
 
 class SmartVar {
-  constructor(node, value) {
+  constructor(node, value, type = 'var') {
     this.value = value;
     this.node = node;
-    this.type = 'var';
-    this.onChange = (value) => value;
-    this.onChanged = (value) => value;
+    this.type = type;
+    this.onChange = ({value}) => value;
+    this.onChanged = ({value}) => value;
   };
 
   get() {
@@ -20,6 +20,7 @@ class SmartVar {
     const newValue = this.onChange({value: value, oldvalue: oldValue, node: this.node}) || value;
     this.value = newValue;
     this.node.innerText = newValue;
+    this.changed = true;
     this.onChanged({value: newValue, node: this.node});
   };
   addClass(c) {
@@ -31,6 +32,10 @@ class SmartVar {
   setStyle(prop, value) {
     this.node.style[prop] = value;
   };
+  disable() {
+    this.disabled = true;
+    this.set("");
+  }
 }
 
 class SmartObj {
@@ -46,27 +51,13 @@ class SmartObj {
     return this.value;
   };
 
-  applyDomChange(smartElem) {
-    if (smartElem.type === 'field') {
-      smartElem.node.innerText = smartElem.node.value;
-      smartElem.changed = true;
-    }
-    else if (smartElem === 'obj') {
-      for (const elem of smartElem.value) {
-        this.applyDomChange(elem);
-      }
-    }
-  };
-
   findNode(name, values, parentName = null, parent = null) {
-    for (let value of values) {
-      if (value.name === name) {
-        if (value.type === 'field' && (!parentName || parentName === parent)) {
-          return value;
-        }
+    for (let key of Object.keys(values)) {
+      if (key === name && values[key] && values[key].type === 'field' && (!parentName || parentName === parent)) {
+          return values[key];
       }
-      else if (value.type === 'obj') {
-        return this.findNode(name, value.value, parentName, value.name);
+      else if (values[key].type === 'obj') {
+        return this.findNode(name, values[key].value, parentName, values[key].name);
       }
     }
   };
@@ -75,78 +66,93 @@ class SmartObj {
     const keys = Object.keys(obj);
     const values = Object.values(obj);
 
-    for (let i = 0; i < values.length; i++) {/*
-      console.log("key: ", keys[i]);
-      console.log("value :", this.value);
-      console.log("parentName: ", parentName);*/
+    for (let i = 0; i < values.length; i++) {
       if (SmartDOM.isObject(values[i])) {
         this.replaceValues(values[i], keys[i])
       }
       else {
         let smartElem = this.findNode(keys[i], this.value, parentName);
-        //console.log("smartElem :", smartElem);
         if (smartElem) {
-          smartElem.node.innerText = values[i];
-          smartElem.changed = true;
+          smartElem.set(values[i]);
         }
       }
     }
-  };
-
-  flattenObj(obj) {
-    let result = {};
-    for (const i in obj) {
-      if (SmartDOM.isObject(obj[i]) && !SmartDOM.isArray(obj[i])) {
-        const temp = this.flattenObj(obj[i]);
-        for (const j in temp) {
-          result[i + '.' + j] = temp[j];
-        }
-      }
-      else {
-        result[i] = obj[i];
-      }
-    }
-    return result;
   };
 
   removeUnusedFields(values = this.value, path = "") {
-    for (let i = values?.length - 1; i >= 0; i--) {
-      if (!values[i].changed && values[i].type === "field") {
-        values[i].node.innerText = "";
+    const keys = Object.keys(values);
+    for (let i = keys?.length - 1; i >= 0; i--) {
+      const key = keys[i];
+      if (!values[key].changed && values[key].type === "field") {
+        values[key].disable();
         continue;
       }
-      if (values[i].type === "obj") {
-        this.removeUnusedFields(values[i].value, values[i].name, i);
+      if (values[key].type === "obj") {
+        this.removeUnusedFields(values[key].value, values[key].name, i);
       }
     }
   };
 
   cleanValuesIntoObject(cleanObj = {}, values) {
-    for (const value of values) {
-      if (value.type === "obj") {
-        cleanObj[value.name] = this.cleanValuesIntoObject({}, value.value);
+    for (const key of Object.keys(values)) {
+      if (values[key].type === "obj") {
+        cleanObj[key] = this.cleanValuesIntoObject({}, values[key].value);
       }
-      else if (value.type === "field") {
-        cleanObj[value.name] = value.value;
+      else if (values[key].type === "field") {
+        cleanObj[key] = values[key].value;
       }
     }
     return cleanObj;
   };
 
+  mergeOldAndNewValue(oldValue, newValue) {
+    let finalValue = {};
+    if (!oldValue || !newValue)
+      return finalValue;
+    const newKeys = Object.keys(newValue);
+    const oldKeys = Object.keys(oldValue);
+    for (const key of newKeys) {
+      if (typeof newValue[key] === "string" || typeof newValue[key] === "number") {
+        finalValue[key] = newValue[key];
+      }
+      else if (SmartDOM.isObject(newValue[key])) {
+        finalValue[key] = this.mergeOldAndNewValue(oldValue[key], newValue[key]);
+      }
+    }
+    if (this.preserveFields) {
+      console.log("test");
+      for (const key of oldKeys) {
+        if (finalValue[key]) {
+          continue;
+        }
+        else {
+          finalValue[key] = oldValue[key];
+        }
+      }
+    }
+    return finalValue;
+  }
+
   set(value) {
     const oldValue = this.value;
-    const cleanOldValue = this.cleanValuesIntoObject({} , oldValue);
+    let cleanOldValue = this.cleanValuesIntoObject({} , oldValue);
+    const mergedValue = this.mergeOldAndNewValue(cleanOldValue, value);
     const newValue = this.onChange({
-      value:value,
+      value: mergedValue,
       oldValue: cleanOldValue,
       node: this.node
-    }) || value;
+    }) || mergedValue;
     this.replaceValues(newValue);
     if (!this.preserveFields) {
       this.removeUnusedFields();
     }
     this.onChanged({value: newValue, node: this.node});
   };
+
+  getNodeFromDotNotationValue(path) {
+    console.log(this.value);
+    //if (!this.value[path])
+  }
 
   addClass(c) {
     this.node.classList.add(c);
@@ -156,8 +162,14 @@ class SmartObj {
     this.node.classList.remove(c);
   };
 
-  setStyle(prop, value) {
-    this.node.style[prop] = value;
+  applyStyles(node, CSSProperties) {
+
+  };
+
+  setStyle(CSSProperties, path = "") {
+    if (path.length === 0) {
+      //applyStyles(this.node, CSSProperties);
+    }
   };
 
   hide(fields) {
@@ -192,20 +204,12 @@ const SmartDOM = {
     smartElem.set(value);
   },
 
-  /*setFields: function(name, fieldsObj) {
-    console.log("fieldsObj :", fieldsObj);
-    const smartElem = this.values[name];
-    const fields = Object.entries(fieldsObj).map((field) => {return {[field[0]]: field[1]}});
-    smartElem.preserveFields = true;
-    console.log("fields :", fields);
-  },*/
-
   get: function (name, ...props) {
     if (!this.values[name]) {
       return this.logError('get-missing-node', {name: name});
     }
     const value = this.values[name].get();
-    console.log("props :", props);
+    //console.log("props :", props);
     return value;
   },
 
@@ -256,11 +260,11 @@ const SmartDOM = {
       if (!node?.dataset?.name || node.dataset.name.length === 0) {
         node.dataset.name = randomIdGenerator();
       }
-      if (node?.children?.length > 0) {
-        this.assignNames(node?.children);
-      }
       if (!node?.dataset?.smartid || node.dataset.smartid.length === 0) {
         node.dataset.smartid = randomIdGenerator();
+      }
+      if (node?.children?.length > 0) {
+        this.assignNames(node?.children);
       }
     }
   },
@@ -271,32 +275,31 @@ const SmartDOM = {
       const name = elem.dataset.name;
       const id = elem.dataset.smartid;
       if (elem.localName == "smartvar") {
-        res[name] = {name: elem.dataset.name, value: elem.innerText, node: elem, type: "var"};
+        res[name] = {name: elem.dataset.name, value: parseInt(elem.innerText) || elem.innerText, node: elem, type: "var"};
       }
       else if (elem.localName == "smartobjfield") {
-        res[name] = {name: elem.dataset.name, value: elem.innerText, node: elem, type: "field"};
+        res[name] = new SmartVar(elem, parseInt(elem.innerText) || elem.innerText, "field");
       }
       else if (elem.localName == "smartobj") {
         res[name] = {name: elem.dataset.name, node: elem, value: this.findSmartChilds(elem), type: "obj"};
       }
       if (elem.children.length > 0)
-        res = {...res, ...this.findSmartChilds(elem)}//res.concat(this.findSmartChilds(elem));
+        res = {...res, ...this.findSmartChilds(elem)};
     }
     return res;
   },
 
   hasParent: function(objs = [], obj, type) {
-    console.log("objs :", objs);
-    console.log("obj :", obj);
     const objName = obj.dataset.name;
     for (pobj of objs) {
-      //for (child of Object.keys(pobj.value)) {
-        if (pobj.value[objName] && pobj.value[objName].type == type)
-          return true;
+      for (child of Object.keys(pobj.value)) {
+        if (!pobj.value[objName])
+          continue;
         if (pobj.value[objName].type == type)
+          return true;
+        else if (pobj.value[objName].type == type)
           return this.hasParent(pobj.value[objName].value, obj);
-      //}
-      console.log(pobj);
+      }
     }
     return false;
   },
@@ -326,12 +329,22 @@ const SmartDOM = {
     this.values[name].removeClass(c);
   },
 
-  setStyle: function(name, prop, value) {
-    this.values[name].setStyle(prop, value);
+  setStyle: function(path, CSSProperties) {
+    const dotPos = path.indexOf('.');
+    if (dotPos === -1)
+      this.values[path].setStyle(CSSProperties);
+    else {
+      const pathArray = path.split('.');
+      const name = pathArray[0];
+      if (!this.values[name]) {
+        return this.logError('register-missing-node', {name: name});
+      }
+      const newPath = path.split('.').slice(1, pathArray.length).join('.');
+      this.values[name].setStyle(CSSProperties, path);
+    }
   },
 
   hide: function(name, fields = []) {
-    console.log("fields :", fields);
     this.values[name].hide(fields);
   },
 
@@ -349,10 +362,8 @@ SmartDOM.assignNamesAndIds(vars);
 const objTree = SmartDOM.makeObjTree(objs);
 
 for (const v of vars) {
-  SmartDOM.create(v.dataset.name, v, v.innerText, "var");
+  SmartDOM.create(v.dataset.name, v, parseInt(v.innerText) || v.innerText, "var");
 }
-
-//console.log({objs})
 
 for (const obj of objTree) {
   SmartDOM.create(obj.name, obj.node, obj.value, "obj");

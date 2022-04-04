@@ -1,16 +1,17 @@
-/*SmartDOM.onChange('test', function({value, oldValue, node}) {
+SmartDOM.onChange('name', function({value, oldValue, node}) {
   console.log("onChange :", value);
   console.log("node :", node);
-  return `${value} dupont`;
+  return `Profile : ${value}`;
 });
 
 SmartDOM.onChange('person', function({value, oldValue, node}) {
   console.log("onChange old value :", oldValue);
   console.log("onChange new value :", value);
   console.log("node :", node);
+  return value;
 });
 
-SmartDOM.onChanged('test', function({value, node}) {
+SmartDOM.onChanged('name', function({value, node}) {
   console.log('onChanged :', value);
   console.log("node :", node);
 });
@@ -21,34 +22,38 @@ SmartDOM.onChanged('person', function({value, node}) {
 });
 
 setTimeout(() => {
-  SmartDOM.set('test', 'Paul');
+  SmartDOM.set('name', 'John');
 }, 1000);
 
-setTimeout(() => {
-  SmartDOM.set('test', 'Elie');
-}, 2000);
-*/
 const person = {
-  name: "Titouan",
-  age: 25,
+  name: "Albert",
+  age: 42,
   person_adress: {
-    street: "6 rue marc sangnier",
-    city: "Vanves",
+    street: "4108 Patton Lane",
+    city: "Cary",
   }
 }
 
 setTimeout(() => {
-  SmartDOM.set('person', person);
-  //SmartDOM.show('person', ["name"]);
+  SmartDOM.set('person', person, {preserveFields: true});
+  SmartDOM.set('name', person?.name);
+  SmartDOM.show('person', ["name"]);
 }, 3000);
 
-/*setTimeout(() => {
-  SmartDOM.hide('person', ["name"]);
+setTimeout(() => {
+  SmartDOM.set('person', {name: "Fred"});
+  SmartDOM.set('name', "Fred");
 }, 4000);
 
 setTimeout(() => {
-  SmartDOM.set('person', {name: "Marine"});
-  SmartDOM.show('person', ["name"]);
+  SmartDOM.hide('person', ["name"]);
 }, 5000);
 
-SmartDOM.hide('person');*/
+setTimeout(() => {
+  SmartDOM.set('person', {name: "Frank"});
+  SmartDOM.set('name', 'Frank');
+  SmartDOM.show('person', ["name"]);
+  SmartDOM.setStyle('person.name.test', {marginBottom: "50px"});
+}, 6000);
+
+SmartDOM.hide('person');
