@@ -19,7 +19,7 @@ class SmartVar {
     const oldValue = this.value;
     const newValue = this.onChange({value: value, oldvalue: oldValue, node: this.node}) || value;
     this.value = newValue;
-    this.node.innerText = newValue;
+    this.node.innerHTML = newValue;
     this.changed = true;
     this.onChanged({value: newValue, node: this.node});
   };

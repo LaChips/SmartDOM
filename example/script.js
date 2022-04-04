@@ -1,7 +1,7 @@
 SmartDOM.onChange('name', function({value, oldValue, node}) {
   console.log("onChange :", value);
   console.log("node :", node);
-  return `Profile : ${value}`;
+  return `<span>Profile : </span>${value}`;
 });
 
 SmartDOM.onChange('person', function({value, oldValue, node}) {
