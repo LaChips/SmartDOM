@@ -9,6 +9,8 @@ class SmartVar {
     this.type = type;
     this.onChange = ({value}) => value;
     this.onChanged = ({value}) => value;
+    if (type === 'var')
+      this.node.style.display = "block";
   };
 
   get() {
@@ -29,8 +31,11 @@ class SmartVar {
   removeClass(c) {
     this.node.classList.remove(c);
   };
-  setStyle(prop, value) {
-    this.node.style[prop] = value;
+  setStyle(CSSProperties) {
+    const CSSPropertiesArray = Object.keys(CSSProperties).map((key) => {return {prop: key, value: CSSProperties[key]}});
+    for (const property of CSSPropertiesArray) {
+      this.node.style[property.prop] = property.value;
+    }
   };
   disable() {
     this.disabled = true;

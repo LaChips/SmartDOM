@@ -53,7 +53,7 @@ setTimeout(() => {
   SmartDOM.set('person', {name: "Frank"});
   SmartDOM.set('name', 'Frank');
   SmartDOM.show('person', ["name"]);
-  SmartDOM.setStyle('person.name.test', {marginBottom: "50px"});
+  SmartDOM.setStyle('name', {marginBottom: "50px", color: "red"});
 }, 6000);
 
 SmartDOM.hide('person');
