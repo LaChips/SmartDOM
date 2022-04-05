@@ -2,6 +2,10 @@
 
 This script is designed to integrate reactive DOM elements easily in a classic HTML file.
 
+## Example
+
+Clone or download an archive of this repo and open `example/index.html` with a browser of your choice (except IE).
+
 ## Installation
 
 Simply copy the `SmartDOM.js` file, located in the root folder, in your project directory and add the following at the end of your `<body>` element :
@@ -21,6 +25,8 @@ For example :
 ```
 
 This will create a reactive variable named "example" with the value `Test`.
+
+You need to specify a `data-name` so you can interact with the data.
 
 You can also create `SmartObjects` :
 
@@ -43,11 +49,12 @@ You can listen for `SmartVar` and `SmartObj` changes using the following :
 
 ```javascript
 /*
-	Returns a data object containing :
-  - value : the new value (passed in .set())
-  - oldValue : the previous value
-  - node : the HTML node associated to the value
-	The return value is optional. If it's provided, the returned content will be used for the render. If not, val will be.
+Returns a data object containing :
+	- value : the new value (passed in .set())
+	- oldValue : the previous value
+	- node : the HTML node associated to the value
+
+The return value is optional. If it's provided, the returned content will be used for the render. If not, val will be.
 */
 SmartDOM.onChange(<data-name>, function(data) {
   return "Test2";
