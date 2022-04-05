@@ -326,12 +326,16 @@ const SmartDOM = {
     return res;
   },
 
-  addClass: function(name, c) {
-    this.values[name].addClass(c);
+  addClass: function(name, classes) {
+    for (const c of classes) {
+      this.values[name].addClass(c);
+    }
   },
 
-  removeClass: function(name, c) {
-    this.values[name].removeClass(c);
+  removeClass: function(name, classes) {
+    for (const c of classes) {
+      this.values[name].removeClass(c);
+    }
   },
 
   setStyle: function(path, CSSProperties) {

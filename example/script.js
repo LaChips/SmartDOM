@@ -54,6 +54,7 @@ setTimeout(() => {
   SmartDOM.set('name', 'Frank');
   SmartDOM.show('person', ["name"]);
   SmartDOM.setStyle('name', {marginBottom: "50px", color: "red"});
+  SmartDOM.addClass('name', ["bold", "italic"]);
 }, 6000);
 
 SmartDOM.hide('person');

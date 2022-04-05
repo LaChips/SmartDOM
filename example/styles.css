@@ -2,51 +2,10 @@
 	box-sizing: border-box;
 }
 
-#products {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-}
-
-.product {
-	width: 150px;
-	height: 150px;
-	background-color: #37008f;
-	border-radius: 5px;
-	margin: 20px;
-	box-shadow: 0px 10px 15px -3px grey;
-	padding-top: 1px;
-	padding-bottom: 1px;
-	padding-left: 10px;
-	padding-right: 10px;
-	color: white;
-	text-align: center;
-	position: relative;
-}
-
-.product-btn {
-	background-color: white;
-	color: #37008f;
-	border-width: 0px;
-	padding-top: 5px;
-	padding-bottom: 5px;
-	width: 80%;
+.bold {
 	font-weight: bold;
-	text-align: center;
-	border: none;
-	position: absolute;
-	left: 50%;
-	top: 80%;
-	transform: translate(-50%, -50%);
-	transition: background-color 250ms, color 250ms, border 50ms 200ms;
 }
 
-.product-btn:hover {
-	border: 3px solid white;
-	background-color: #37008f;
-	color: white;
-}
-
-.text-center {
-	text-align: center;
+.italic {
+	font-style: italic;
 }
