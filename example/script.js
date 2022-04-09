@@ -1,4 +1,4 @@
-SmartDOM.onChange('name', function({value, oldValue, node}) {
+/*SmartDOM.onChange('name', function({value, oldValue, node}) {
   console.log("onChange :", value);
   console.log("node :", node);
   return `<span>Profile : </span>${value}`;
@@ -19,7 +19,7 @@ SmartDOM.onChanged('name', function({value, node}) {
 SmartDOM.onChanged('person', function({value, node}) {
   console.log("onChanged :", value);
   console.log("node :", node);
-});
+});*/
 
 setTimeout(() => {
   SmartDOM.set('name', 'John');

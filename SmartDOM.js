@@ -294,26 +294,20 @@ const SmartDOM = {
     return res;
   },
 
-  hasParent: function(objs = [], obj, type) {
-    const objName = obj.dataset.name;
-    for (pobj of objs) {
-      for (child of Object.keys(pobj.value)) {
-        if (!pobj.value[objName])
-          continue;
-        if (pobj.value[objName].type == type)
-          return true;
-        else if (pobj.value[objName].type == type)
-          return this.hasParent(pobj.value[objName].value, obj);
-      }
-    }
-    return false;
+  hasParent: function(obj) {
+    const parent = obj?.parentNode;
+    if (parent.localName === "body")
+      return false;
+    if (["smartobj", "smartarr"].indexOf(parent.localName) !== -1)
+      return true;
+    return this.hasParent(parent);
   },
 
   makeObjTree: function(HTMLobjs) {
     var objs = [].slice.call(HTMLobjs);
     let res = [];
     for (let i = 0; i < objs.length; i++) {
-      if (this.hasParent(res, objs[i], "obj") == false) {
+      if (this.hasParent(objs[i]) === false) {
         if (!objs[i]?.dataset?.name || objs[i].dataset.name.length === 0) {
           objs[i].dataset.name = randomIdGenerator();
         }
@@ -364,18 +358,22 @@ const SmartDOM = {
 
 const vars = document.querySelectorAll('SmartVar');
 const objs = document.querySelectorAll('SmartObj');
+const arrs = document.querySelectorAll('SmartArr');
 
 SmartDOM.assignNamesAndIds(vars);
 //SmartDOM.assignNames(objs);
 
 const objTree = SmartDOM.makeObjTree(objs);
-
+console.log("objTree :", objTree);
 for (const v of vars) {
-  SmartDOM.create(v.dataset.name, v, parseInt(v.innerText) || v.innerText, "var");
+  if (SmartDOM.hasParent(v) === false)
+    SmartDOM.create(v.dataset.name, v, parseInt(v.innerText) || v.innerText, "var");
 }
 
 for (const obj of objTree) {
   SmartDOM.create(obj.name, obj.node, obj.value, "obj");
 }
 
+for (const arr of arrs) {
 
+}
